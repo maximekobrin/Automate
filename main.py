@@ -42,6 +42,6 @@ class AutomateFini:
 
 
 # Exemple d'utilisation
-chemin = "/Users/maximekobrin/Documents/Python PS/GitHub/Untitled/1.txt"  # Remplace par le chemin réel de ton fichier
+chemin = "/Users/maximekobrin/Documents/Python PS/GitHub/Untitled/txt/1.txt"  # Remplace par le chemin réel de ton fichier
 ligne_voulue = 1  # Par exemple, lire la 1e ligne
 print(lire_ligne_fichier(chemin, ligne_voulue))
