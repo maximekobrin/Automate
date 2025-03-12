@@ -1,7 +1,6 @@
 class AutomateFini_2:
     def __init__(self):
         # Définir les états, l'état initial et les états finaux
-            self.etats = 'q0'
             self.etat_initial = 'q0'
             self.etats_finaux = 'q0'
             # Définir les transitions
@@ -112,6 +111,6 @@ def accepte(automate, chaine):
 
 
 # Exemple d'utilisation
-automate = AutomateFini_8()
+automate = AutomateFini_2()
 print(accepte(automate,"bbaaa")) # True
 print(accepte(automate,"a")) # False
