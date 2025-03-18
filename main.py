@@ -7,6 +7,12 @@ def choisir_fichier():
         print("Aucun fichier disponible.")
         return None
 
+    fichiers.sort(key=lambda x: int(x.split('.')[0]))  # Trier les fichiers numériquement
+
+    print("Fichiers disponibles :")
+    for i, fichier in enumerate(fichiers):
+        print(f"{i + 1}. {fichier}")  # Afficher les fichiers avec un numéro
+
     while True:
         choix = input("Entrez le numéro du fichier que vous voulez utiliser : ")
         if choix.isdigit() and 1 <= int(choix) <= len(fichiers):
@@ -17,52 +23,72 @@ class AutomateFini:
     def __init__(self, chemin_fichier):
         # Ouvrir le fichier en mode lecture et lire la première ligne
         with open(chemin_fichier, 'r', encoding='utf-8') as fichier:
-            premiere_ligne = fichier.readline().strip()  # Lit la première ligne et enlève les espaces ou retours à la ligne
-            deuxième_ligne = fichier.readline().strip()
-            troisième_ligne = fichier.readline().strip()
-            quatrième_ligne = fichier.readline().strip()
-            cinquième_ligne = fichier.readline().strip()
-            sixième_ligne = fichier.readline().strip()
+            lignes = [ligne.strip() for ligne in fichier.readlines()]
 
         #Nombre de symbole dans l'alphabet
-        self.nb_symbole_alphabet = premiere_ligne
+        self.nombre_symboles = int(lignes[0])
 
         #Nombre d'état
-        self.nb_etats = deuxième_ligne
+        self.nombre_etats = int(lignes[1])
 
-        #nombre d’états initiaux
-        self.nb_etat_initiaux = troisième_ligne
+        #états initiaux
+        self.etats_initiaux_data = lignes[2].split()
+        self.nombre_etats_initiaux = int(self.etats_initiaux_data[0])
+        self.etats_initiaux = set(self.etats_initiaux_data[1:])
 
+        #Etat finaux
+        self.etats_finaux_data = lignes[3].split()
+        self.nombre_etats_finaux = int(self.etats_finaux_data[0])
+        self.etats_finaux = set(self.etats_finaux_data[1:])
 
-        # Vous pouvez également affecter cette valeur à d'autres attributs si besoin
-        self.etats_initial = troisième_ligne
-        self.etats_finaux = quatrième_ligne
+        print(lignes)
+        #Transition
+        self.nombre_transitions = int(lignes[4])
+        self.transitions = {}
+        for i in range(5, 5 + self.nombre_transitions):  # Parcours des lignes de transition
+            elements = lignes[i].split()
+            etat_depart = elements[0]
+            symboles = elements[1].split(',')  # Symboles séparés par des virgules
+            etat_arrivee = elements[2]
 
-        self.nb_transition = cinquième_ligne
-        # Initialisation des transitions (ici, vide par défaut)
-        self.transitions = sixième_ligne
+            for symbole in symboles:
+                self.transitions.setdefault((etat_depart, symbole), set()).add(etat_arrivee)
 
     def accepte(self, chaine):
-        etat_actuel = self.etats_initial
+
+        etats_actuels = self.etats_initiaux  # On commence avec les états initiaux
+
         for symbole in chaine:
-            if symbole in self.transitions[etat_actuel]:
-                etat_actuel = self.transitions[etat_actuel][symbole]
-            else:
+            nouveaux_etats = set()
+            for etat in etats_actuels:
+                if (etat, symbole) in self.transitions:
+                    nouveaux_etats.update(self.transitions[(etat, symbole)])
+
+            if not nouveaux_etats:  # Si aucun nouvel état n'est atteint, la chaîne est rejetée
                 return False
-        return etat_actuel in self.etats_finaux
+            etats_actuels = nouveaux_etats  # Mise à jour des états courants
+
+        # Vérifie si au moins un des états actuels est un état final
+        return any(etat in self.etats_finaux for etat in etats_actuels)
 
 
-# Exemple d'utilisation :
+# 🔹 Sélection du fichier
 chemin_selectionne = choisir_fichier()
 if chemin_selectionne:
     automate = AutomateFini(chemin_selectionne)
-    print("nombre de symboles dans l’alphabet de l’automate : ", automate.nb_symbole_alphabet)
-    print("nombre d’états : ", automate.nb_etats)
-    print("nombre d’états initiaux, suivi de leurs numéros : ", automate.nb_etat_initiaux)
-    print("nombre d’états terminaux, suivi de leurs numéros : ", automate.nb_etat_initiaux)
-    print("nombre de transitions : ", automate.nb_transition)
-    print("transitions : ", automate.sixième_ligne)
 
-automate = AutomateFini()
-print(accepte(automate,"bbaaa")) # True
-print(accepte(automate,"a")) # False
+    # 🔹 Affichage des informations de l'automate
+    print("\n🔹 Informations de l'Automate 🔹")
+    print("Nombre de symboles :", automate.nombre_symboles)
+    print("Nombre d'états :", automate.nombre_etats)
+    print("États initiaux :", automate.etats_initiaux)
+    print("États finaux :", automate.etats_finaux)
+    print("Nombre de transitions :", automate.nombre_transitions)
+    print("Transitions :")
+    for (etat, symbole), destinations in automate.transitions.items():
+        print(f"  {etat} --({symbole})--> {destinations}")
+
+    # 🔹 Tester si des chaînes sont acceptées
+    print("\n🔹 Tests d'acceptation 🔹")
+    print(f"Chaîne 'a' : {automate.accepte('a')}")
+    print(f"Chaîne 'bbaaa' : {automate.accepte('bbaaa')}")
