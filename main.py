@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 def choisir_fichier():
     dossier = "/Users/maximekobrin/Documents/Python PS/GitHub/Untitled/txt"  # Dossier où se trouvent tes fichiers
     fichiers = [f for f in os.listdir(dossier) if f.endswith('.txt')]  # Liste des fichiers .txt
@@ -71,6 +72,23 @@ class AutomateFini:
         # Vérifie si au moins un des états actuels est un état final
         return any(etat in self.etats_finaux for etat in etats_actuels)
 
+    #déterminisation de l'automate
+        #si : - 1 seul état initial, - chaque état possède au max 1 transition par symbole, - aucune transition ε
+    def est_deterministe(self):
+        if len(self.etats_initiaux) > 1:
+            return False, "l'automate n'est pas une automate déterministe, plusieurs états initiaux" # pLus d'un état
+        for (etat,symbole), destinations in self.transitions.items():
+            if len(destinations) > 1:
+                return False, "l'automate n'est pas une automate déterministe, plusieurs à partir du même état du même symbole"
+            if symbole == "ε":
+                return False, "l'automate n'est pas une automate déterministe, il existe une ou plusieurs ε-transition"
+
+        return True, "l'automate est déterministe"
+
+
+
+
+
 
 # 🔹 Sélection du fichier
 chemin_selectionne = choisir_fichier()
@@ -92,3 +110,8 @@ if chemin_selectionne:
     print("\n🔹 Tests d'acceptation 🔹")
     print(f"Chaîne 'a' : {automate.accepte('a')}")
     print(f"Chaîne 'bbaaa' : {automate.accepte('bbaaa')}")
+
+#Déterministe ou non
+is_deterministic, message = automate.est_deterministe()
+print(message)
+
