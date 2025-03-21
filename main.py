@@ -54,6 +54,10 @@ class AutomateFini:
             for symbole in symboles:
                 self.transitions.setdefault((etat_depart, symbole), set()).add(etat_arrivee)
 
+        #Liste de etats
+        self.etats = {etat for (etat, _) in self.transitions.keys()}  # Récupère tous les états
+        self.etats.update({e for dest in self.transitions.values() for e in dest})  # Ajoute les états d'arrivée
+
 
     #création d'un état qui regroupe l'ensemble des etat accessible uniquement en ε
     def fermeture_epsilon(self, etat):
@@ -108,6 +112,20 @@ class AutomateFini:
                 return False, "l'automate n'est pas une automate déterministe, il existe une ou plusieurs ε-transition"
 
         return True, "l'automate est déterministe"
+
+    def is_complet(self):
+
+        # Récupérer tous les symboles utilisés dans l'automate
+        alphabet = {s for _, s in self.transitions.keys() if s != "ε"}  # Exclure epsilon
+
+        for etat in self.etats:
+            transitions_etat = {s for (_, s) in self.transitions.keys() if _ == etat}  # Symboles disponibles
+
+            # Vérifie si l'état couvre tous les symboles de l'alphabet
+            if transitions_etat != alphabet:
+                return False, f"Automate non complet : L'état {etat} ne couvre pas tous les symboles ({alphabet - transitions_etat})"
+
+        return True, "L'automate est complet."
 
     def contient_transition_epsilon(self):
         """Vérifie si l'automate contient au moins une transition ε"""
@@ -235,8 +253,10 @@ print("\n🔹 Tests d'acceptation 🔹")
 print(f"Chaîne 'a' : {automate.accepte('a')}")
 print(f"Chaîne 'bbaaa' : {automate.accepte('bbaaa')}")
 
-#Déterministe ou non
+#Déterministe, complet ou non
 is_deterministe, message = automate.est_deterministe()
+print(message)
+is_complet,message = automate.is_complet()
 print(message)
 
 if is_deterministe == False:
