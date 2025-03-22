@@ -176,7 +176,6 @@ class AutomateFini:
         print("Standardisation terminée.")
 
     def minimiser(self):
-        """Minimise l'automate en utilisant l'algorithme de minimisation de Moore."""
         # 1. Identifier les états acceptants et non acceptants
         etats_acceptants = self.etats_finaux
         etats_non_acceptants = self.etats - etats_acceptants
@@ -450,10 +449,10 @@ class AutomateDeterministe(AutomateFini):
             print("-" * 20)
             return
 
-        # 🔹 Renommer les états pour un affichage plus lisible (Q0, Q1, ...)
+        # Renommer les états pour un affichage plus lisible (Q0, Q1, ...)
         nom_etats = {etat: f"Q{i}" for i, etat in enumerate(sorted(self.etats, key=str))}
 
-        # 🔹 Récupérer l'alphabet sans ε, avec sécurité
+        # Récupérer l'alphabet sans ε, avec sécurité
         alphabet = sorted(
             {s for key in self.transitions.keys() if isinstance(key, tuple) and len(key) == 2 for _, s in [key] if
              s != "ε"}
@@ -463,19 +462,19 @@ class AutomateDeterministe(AutomateFini):
             print("\nAvertissement : L'alphabet est vide, aucune transition détectée.")
             alphabet = ["∅"]  # Ajoute un symbole fictif pour éviter l'erreur
 
-        # 🔹 Largeur des colonnes pour aligner l'affichage
+        # Largeur des colonnes pour aligner l'affichage
         largeur_etat = max(len(nom) for nom in nom_etats.values()) + 6  # Espace pour (I), (F), etc.
         largeur_symbole = max((len(symbole) for symbole in alphabet), default=2) + 2
         largeur_colonne = max(largeur_etat, largeur_symbole)
 
-        # 🔹 Affichage de l'en-tête du tableau
+        # Affichage de l'en-tête du tableau
         print("\nTable de transition (Automate Déterminisé) :")
         en_tete = "État".ljust(largeur_colonne) + "".join(symbole.ljust(largeur_colonne) for symbole in alphabet)
         print("-" * len(en_tete))
         print(en_tete)
         print("-" * len(en_tete))
 
-        # 🔹 Affichage des transitions
+        # Affichage des transitions
         for etat, nom_etat in nom_etats.items():
             # Type d'état (I = Initial, F = Final, I,F = Initial et Final)
             type_etat = ""
@@ -536,7 +535,7 @@ while True:  # Boucle pour relancer le programme avec un autre automate
     automate.afficher_table_transitions()
 
     # Tester si des chaînes sont acceptées
-    print("\n🔹 Tests d'acceptation 🔹")
+    print("\nTests d'acceptation ")
     print(f"Chaîne 'a' : {automate.accepte('a')}")
     print(f"Chaîne 'bbaaa' : {automate.accepte('bbaaa')}")
 
