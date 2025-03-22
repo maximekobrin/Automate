@@ -177,11 +177,6 @@ class AutomateFini:
 
         print("Standardisation terminée.")
 
-
-
-
-
-
     def determiniser(self):
         if self.contient_transition_epsilon():
             self.eliminer_transitions_epsilon()
