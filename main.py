@@ -131,6 +131,51 @@ class AutomateFini:
         """Vérifie si l'automate contient au moins une transition ε"""
         return any(symbole == "ε" for _, symbole in self.transitions.keys())
 
+
+    def is_standard(self):
+        if len(self.etats_initiaux) != 1:
+            return False
+
+        etat_initial = next(iter(self.etats_initiaux))
+
+        for (etat_depart,symbole), etats_arrivee in self.transitions.items():
+            if etat_initial in etats_arrivee and etat_depart != etat_initial:
+                return False
+
+        return True
+
+    def standardiser(self):
+
+        if self.is_standard():
+            print("L'automate est déjà standard.")
+            return self
+
+        nouvel_etat_initial = "état_i"
+        #nouveaux_etats = self.etats.union({nouvel_etat_initial})
+        #nouvelles_transitions = {**self.transitions}
+
+
+        self.etats.add(nouvel_etat_initial)
+
+
+        for etat_initial in self.etats_initiaux:
+            self.transitions.setdefault((nouvel_etat_initial, ""), set()).add(etat_initial)
+
+
+            for (etat_depart, symbole), etats_arrivee in list(self.transitions.items()):
+                if etat_depart == etat_initial:
+                    self.transitions.setdefault((nouvel_etat_initial, symbole), set()).update(etats_arrivee)
+
+        # Mettre à jour l'état initial
+        self.etats_initiaux = {nouvel_etat_initial}
+
+        print("Standardisation terminée.")
+
+
+
+
+
+
     def determiniser(self):
         if self.contient_transition_epsilon():
             self.eliminer_transitions_epsilon()
