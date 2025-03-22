@@ -4,7 +4,7 @@ from collections import defaultdict
 
 
 def choisir_fichier():
-    dossier = "/Users/maximekobrin/Documents/Python PS/GitHub/Untitled/txt"  # Dossier où se trouvent tes fichiers
+    dossier = "C:/Users/anthi/Automate/txt"  # Dossier où se trouvent tes fichiers
     fichiers = [f for f in os.listdir(dossier) if f.endswith('.txt')]  # Liste des fichiers .txt
 
     if not fichiers:
@@ -175,6 +175,81 @@ class AutomateFini:
 
         print("Standardisation terminée.")
 
+    def minimiser(self):
+        """Minimise l'automate en utilisant l'algorithme de minimisation de Moore."""
+        # 1. Identifier les états acceptants et non acceptants
+        etats_acceptants = self.etats_finaux
+        etats_non_acceptants = self.etats - etats_acceptants
+        # 2. Créer des partitions initiales
+        partitions = [etats_acceptants, etats_non_acceptants]
+        partitions = [set(partition) for partition in partitions if partition]  # Supprimer les partitions vides
+         # 3. Affiner les partitions
+        def refine_partitions(partitions):
+            nouvelle_partition = []
+            for partition in partitions:
+                # Dictionnaire pour regrouper les états par leurs transitions
+                transition_dict = defaultdict(set)
+                for etat in partition:
+                    # Obtenir les transitions pour chaque symbole
+                    for symbole in {s for (e, s) in self.transitions.keys() if e == etat}:
+                        destination = self.transitions.get((etat, symbole), set())
+                        transition_dict[frozenset(destination)].add(etat)
+                nouvelle_partition.extend(transition_dict.values())
+            return nouvelle_partition
+
+        # Affiner jusqu'à ce qu'il n'y ait plus de changements
+        while True:
+            nouvelles_partitions = refine_partitions(partitions)
+            if len(nouvelles_partitions) == len(partitions):
+                break
+            partitions = nouvelles_partitions
+        # 4. Créer l'automate minimisé
+        nouveaux_etats = {frozenset(partition) for partition in partitions}
+        nouvel_etat_initial = frozenset(self.etats_initiaux)
+        nouvelles_transitions = {}
+        # Créer les nouvelles transitions
+        for partition in partitions:
+            for etat in partition:
+                for symbole in {s for (e, s) in self.transitions.keys() if e == etat}:
+                    destination = self.transitions.get((etat, symbole), set())
+                    destination_partition = frozenset(next(p for p in partitions if etat in p))
+                    nouvelles_transitions.setdefault((frozenset(partition), symbole), set()).add(destination_partition)
+        # Créer et retourner un nouvel automate déterministe
+        return AutomateDeterministe(nouveaux_etats, nouvelles_transitions, nouvel_etat_initial,
+                                    {frozenset(part) for part in partitions if part & etats_acceptants})
+        def refine_partitions(partitions):
+            nouvelle_partition = []
+            for partition in partitions:
+                # Dictionnaire pour regrouper les états par leurs transitions
+                transition_dict = defaultdict(set)
+                for etat in partition:
+                    # Obtenir les transitions pour chaque symbole
+                    for symbole in {s for (e, s) in self.transitions.keys() if e == etat}:
+                        destination = self.transitions.get((etat, symbole), set())
+                        transition_dict[frozenset(destination)].add(etat)
+                nouvelle_partition.extend(transition_dict.values())
+            return nouvelle_partition
+
+        # Affiner jusqu'à ce qu'il n'y ait plus de changements
+        while True:
+            nouvelles_partitions = refine_partitions(partitions)
+            if len(nouvelles_partitions) == len(partitions):
+                break
+            partitions = nouvelles_partitions
+        # 4. Créer l'automate minimisé
+        nouveaux_etats = {frozenset(partition) for partition in partitions}
+        nouvel_etat_initial = frozenset(self.etats_initiaux)
+        nouvelles_transitions = {}
+        # Créer les nouvelles transitions
+        for partition in partitions:
+            for etat in partition:
+                for symbole in {s for (e, s) in self.transitions.keys() if e == etat}:
+                    destination = self.transitions.get((etat, symbole), set())
+                    destination_partition = frozenset(next(p for p in partitions if etat in p))
+                    nouvelles_transitions.setdefault((frozenset(partition), symbole), set()).add(destination_partition)
+        # Créer et retourner un nouvel automate déterministe
+        return AutomateDeterministe(nouveaux_etats, nouvelles_transitions, nouvel_etat_initial,
+                                    {frozenset(part) for part in partitions if part & etats_acceptants})
     def complémentaire(self):
         nouveaux_etats_finaux = self.etats - self.etats_finaux
         self.etats_finaux = nouveaux_etats_finaux
@@ -307,6 +382,53 @@ class AutomateDeterministe(AutomateFini):
         print(f"État initial : {self.nom_etats[self.etat_initial]}")
         print(f"États finaux : {self.etats_acceptants}")
 
+
+
+    def minimiser(self):
+        """Minimise l'automate en utilisant l'algorithme de minimisation de Moore."""
+        # 1. Identifier les états acceptants et non acceptants
+        etats_acceptants = self.etats_finaux
+        etats_non_acceptants = self.etats - etats_acceptants
+        # 2. Créer des partitions initiales
+        partitions = [etats_acceptants, etats_non_acceptants]
+        partitions = [set(partition) for partition in partitions if partition]  # Supprimer les partitions vides
+         # 3. Affiner les partitions
+        def refine_partitions(partitions):
+            nouvelle_partition = []
+            for partition in partitions:
+                # Dictionnaire pour regrouper les états par leurs transitions
+                transition_dict = defaultdict(set)
+                for etat in partition:
+                    # Obtenir les transitions pour chaque symbole
+                    for symbole in {s for (e, s) in self.transitions.keys() if e == etat}:
+                        destination = self.transitions.get((etat, symbole), set())
+                        transition_dict[frozenset(destination)].add(etat)
+                nouvelle_partition.extend(transition_dict.values())
+            return nouvelle_partition
+
+        # Affiner jusqu'à ce qu'il n'y ait plus de changements
+        while True:
+            nouvelles_partitions = refine_partitions(partitions)
+            if len(nouvelles_partitions) == len(partitions):
+                break
+            partitions = nouvelles_partitions
+        # 4. Créer l'automate minimisé
+        nouveaux_etats = {frozenset(partition) for partition in partitions}
+        nouvel_etat_initial = frozenset(self.etats_initiaux)
+        nouvelles_transitions = {}
+        # Créer les nouvelles transitions
+        for partition in partitions:
+            for etat in partition:
+                for symbole in {s for (e, s) in self.transitions.keys() if e == etat}:
+                    destination = self.transitions.get((etat, symbole), set())
+                    destination_partition = frozenset(next(p for p in partitions if etat in p))
+                    nouvelles_transitions.setdefault((frozenset(partition), symbole), set()).add(destination_partition)
+        # Créer et retourner un nouvel automate déterministe
+        return AutomateDeterministe(nouveaux_etats, nouvelles_transitions, nouvel_etat_initial,
+                                    {frozenset(part) for part in partitions if part & etats_acceptants})
+
+
+
     def afficher_table_transitions(self):
 
         # Vérifier si l'automate a des transitions
@@ -424,13 +546,15 @@ while True:  # Boucle pour relancer le programme avec un autre automate
     is_complet, message = automate.is_complet()
     print(message)
 
+
     # Standardisation de l'automate
     if hasattr(automate, "is_standard"):
         print(automate.is_standard())
         automate.standardiser()
-
     # Complementaire
     automate.complémentaire()
+
+
 
 
     #  Déterminisation si nécessaire
@@ -446,6 +570,12 @@ while True:  # Boucle pour relancer le programme avec un autre automate
         print(f"Chaîne 'bbaaa' : {afd.acceptedet('bbaaa')}")
 
         afd.complémentaire()
+
+    # Minimisation de l'automate
+    automate_minimise = automate.minimiser()
+    print("\nAutomate minimisé :")
+    automate_minimise.afficher()
+    automate_minimise.afficher_table_transitions()
 
 
 
