@@ -183,20 +183,6 @@ class AutomateFini:
         # 2. Créer des partitions initiales
         partitions = [etats_acceptants, etats_non_acceptants]
         partitions = [set(partition) for partition in partitions if partition]  # Supprimer les partitions vides
-         # 3. Affiner les partitions
-        def refine_partitions(partitions):
-            nouvelle_partition = []
-            for partition in partitions:
-                # Dictionnaire pour regrouper les états par leurs transitions
-                transition_dict = defaultdict(set)
-                for etat in partition:
-                    # Obtenir les transitions pour chaque symbole
-                    for symbole in {s for (e, s) in self.transitions.keys() if e == etat}:
-                        destination = self.transitions.get((etat, symbole), set())
-                        transition_dict[frozenset(destination)].add(etat)
-                nouvelle_partition.extend(transition_dict.values())
-            return nouvelle_partition
-
         # Affiner jusqu'à ce qu'il n'y ait plus de changements
         while True:
             nouvelles_partitions = refine_partitions(partitions)
@@ -392,21 +378,7 @@ class AutomateDeterministe(AutomateFini):
         # 2. Créer des partitions initiales
         partitions = [etats_acceptants, etats_non_acceptants]
         partitions = [set(partition) for partition in partitions if partition]  # Supprimer les partitions vides
-         # 3. Affiner les partitions
-        def refine_partitions(partitions):
-            nouvelle_partition = []
-            for partition in partitions:
-                # Dictionnaire pour regrouper les états par leurs transitions
-                transition_dict = defaultdict(set)
-                for etat in partition:
-                    # Obtenir les transitions pour chaque symbole
-                    for symbole in {s for (e, s) in self.transitions.keys() if e == etat}:
-                        destination = self.transitions.get((etat, symbole), set())
-                        transition_dict[frozenset(destination)].add(etat)
-                nouvelle_partition.extend(transition_dict.values())
-            return nouvelle_partition
-
-        # Affiner jusqu'à ce qu'il n'y ait plus de changements
+         # Affiner jusqu'à ce qu'il n'y ait plus de changements
         while True:
             nouvelles_partitions = refine_partitions(partitions)
             if len(nouvelles_partitions) == len(partitions):
