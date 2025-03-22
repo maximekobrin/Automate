@@ -222,7 +222,6 @@ class AutomateFini:
         print(f"🔹 Nombre de transitions : {self.nombre_transitions}")
 
     def afficher_table_transitions(self):
-        """ Affiche la table des transitions sous forme de tableau sans bibliothèque externe """
 
         # 🔹 Récupérer l'alphabet sans ε
         alphabet = sorted({s for _, s in self.transitions.keys() if s != "ε"})
@@ -310,17 +309,41 @@ class AutomateDeterministe(AutomateFini):
     def afficher_table_transitions(self):
         """ Affiche la table des transitions de l'automate déterminisé sous forme de tableau """
 
+        # 🔹 Vérifier si l'automate a des transitions
+        if not self.transitions:
+            print("\n⚠️ Aucune transition détectée dans l'automate.")
+            print("\nTable de transition :")
+            print("-" * 20)
+            print("État".ljust(15) + "∅")
+            for etat in sorted(self.etats, key=str):
+                type_etat = ""
+                if etat == self.etat_initial and etat in self.etats_acceptants:
+                    type_etat = "(I,F) "
+                elif etat == self.etat_initial:
+                    type_etat = "(I)   "
+                elif etat in self.etats_acceptants:
+                    type_etat = "(F)   "
+
+                print(f"{type_etat}{etat}".ljust(15) + "∅")
+            print("-" * 20)
+            return
+
         # 🔹 Renommer les états pour un affichage plus lisible (Q0, Q1, ...)
         nom_etats = {etat: f"Q{i}" for i, etat in enumerate(sorted(self.etats, key=str))}
 
-        # 🔹 Récupérer l'alphabet (sans ε)
+        # 🔹 Récupérer l'alphabet sans ε, avec sécurité
         alphabet = sorted(
             {s for key in self.transitions.keys() if isinstance(key, tuple) and len(key) == 2 for _, s in [key] if
-             s != "ε"})
+             s != "ε"}
+        )
+
+        if not alphabet:  # ✅ Sécurité : Si l'alphabet est vide
+            print("\n⚠️ Avertissement : L'alphabet est vide, aucune transition détectée.")
+            alphabet = ["∅"]  # Ajoute un symbole fictif pour éviter l'erreur
 
         # 🔹 Largeur des colonnes pour aligner l'affichage
         largeur_etat = max(len(nom) for nom in nom_etats.values()) + 6  # Espace pour (I), (F), etc.
-        largeur_symbole = max(len(symbole) for symbole in alphabet) + 2
+        largeur_symbole = max((len(symbole) for symbole in alphabet), default=2) + 2
         largeur_colonne = max(largeur_etat, largeur_symbole)
 
         # 🔹 Affichage de l'en-tête du tableau
@@ -371,40 +394,55 @@ class AutomateDeterministe(AutomateFini):
         # Vérifie si au moins un des états actuels est un état final
         return any(etat in self.etats_acceptants for etat in etats_actuels)
 
-# 🔹 Sélection du fichier
+
+# Lancement du Programme avec option de relance
 automates_sauvegardes = {}
-chemin_selectionne = choisir_fichier()
-if chemin_selectionne:
+
+while True:  # Boucle pour relancer le programme avec un autre automate
+    chemin_selectionne = choisir_fichier()
+    if not chemin_selectionne:
+        print("Aucun fichier sélectionné. Arrêt du programme.")
+        break  # Sortir de la boucle si aucun fichier n'est sélectionné
+
+    # Charger et afficher l'automate
     automate = AutomateFini(chemin_selectionne)
-    nom_automate = chemin_selectionne.split('/')[-1]  # Récupère le nom du fichier
-    automates_sauvegardes[nom_automate] = automate  # 🔹 Sauvegarde en mémoire
+    nom_automate = chemin_selectionne.split('/')[-1]
+    automates_sauvegardes[nom_automate] = automate  # Sauvegarde en mémoire
     print(f"\nAutomate '{nom_automate}' enregistré en mémoire.")
 
-automate = AutomateFini(chemin_selectionne)
-automate.afficher()
-automate.afficher_table_transitions()
-
-# Tester si des chaînes sont acceptées
-print("\n Tests d'acceptation ")
-print(f"Chaîne 'a' : {automate.accepte('a')}")
-print(f"Chaîne 'bbaaa' : {automate.accepte('bbaaa')}")
-
-#Déterministe, complet ou non
-is_deterministe, message = automate.est_deterministe()
-print(message)
-is_complet,message = automate.is_complet()
-print(message)
-
-print(automate.is_standard())
-automate.standardiser()
-
-if is_deterministe == False:
-    print("\n**Suppression des transitions ε et déterminisation**")
-    afd = automate.determiniser()
-    afd.afficher()
-    afd.afficher_table_transitions()
+    automate.afficher()
+    automate.afficher_table_transitions()
 
     # Tester si des chaînes sont acceptées
     print("\n🔹 Tests d'acceptation 🔹")
-    print(f"Chaîne 'a' : {afd.acceptedet('a')}")
-    print(f"Chaîne 'bbaaa' : {afd.acceptedet('bbaaa')}")
+    print(f"Chaîne 'a' : {automate.accepte('a')}")
+    print(f"Chaîne 'bbaaa' : {automate.accepte('bbaaa')}")
+
+    # Vérifier si l'automate est déterministe et complet
+    is_deterministe, message = automate.est_deterministe()
+    print(message)
+    is_complet, message = automate.is_complet()
+    print(message)
+
+    # Standardisation de l'automate (si applicable)
+    if hasattr(automate, "is_standard"):
+        print(automate.is_standard())
+        automate.standardiser()
+
+    #  Déterminisation si nécessaire
+    if not is_deterministe:
+        print("\n🔍 **Suppression des transitions ε et déterminisation**")
+        afd = automate.determiniser()
+        afd.afficher()
+        afd.afficher_table_transitions()
+
+        # Tester si des chaînes sont acceptées par l'AFD
+        print("\n🔹 Tests d'acceptation après déterminisation ")
+        print(f"Chaîne 'a' : {afd.acceptedet('a')}")
+        print(f"Chaîne 'bbaaa' : {afd.acceptedet('bbaaa')}")
+
+    # Demander si l'utilisateur veut relancer avec un autre automate
+    relancer = input("\nVoulez-vous analyser un autre automate ? (O/N) : ").strip().lower()
+    if relancer != 'o':  # Si l'utilisateur ne choisit pas 'O', on quitte la boucle
+        print("🚀 Programme terminé.")
+        break
