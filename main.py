@@ -83,25 +83,25 @@ class AutomateFini:
         nouvelles_transitions = defaultdict(set)
         fermeture_epsilon = {etat: self.fermeture_epsilon(etat) for etat in self.etats}
 
-        # 🔹 Reconstruction des transitions sans ε
+        # Reconstruction des transitions sans ε
         for (etat, symbole), destinations in self.transitions.items():
-            if symbole != "ε":  # On ignore les transitions ε
+            if symbole != "ε":
                 for destination in destinations:
-                    for etat_f in fermeture_epsilon[etat]:  # Ajouter les fermetures des états sources
+                    for etat_f in fermeture_epsilon[etat]:
                         nouvelles_transitions[(etat_f, symbole)].update(fermeture_epsilon[destination])
 
-        # 🔹 Conserver toutes les transitions normales
+        # Conserver toutes les transitions normales
         for (etat, symbole), destinations in self.transitions.items():
             if symbole != "ε":
                 nouvelles_transitions[(etat, symbole)].update(destinations)
 
-        # 🔹 Mise à jour des états finaux
+        # Mise à jour des états finaux
         nouveaux_etats_finaux = set()
         for etat in self.etats:
             if any(f in self.etats_finaux for f in fermeture_epsilon[etat]):
                 nouveaux_etats_finaux.add(etat)
 
-        # 🔹 Mise à jour de l'automate
+        # Mise à jour de l'automate
         self.transitions = nouvelles_transitions
         self.etats_finaux = nouveaux_etats_finaux
         print("\nLes transitions ε ont été éliminées et l'automate est mis à jour.")
