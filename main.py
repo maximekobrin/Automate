@@ -249,6 +249,12 @@ class AutomateDeterministe(AutomateFini):
         self.etats_acceptants = etats_acceptants
         self.nom_etats = self.renommer_etats()
 
+    def complémentaire(self):
+        nouveaux_etats_finaux = self.etats - self.etats_finaux
+        self.etats_finaux = nouveaux_etats_finaux
+
+        print("Transformation en langage complémentaire terminée.")
+
     def renommer_etats(self):
         """ Génère des noms lisibles pour les états """
         nom_etats = {}
