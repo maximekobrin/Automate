@@ -175,6 +175,12 @@ class AutomateFini:
 
         print("Standardisation terminée.")
 
+    def complémentaire(self):
+        nouveaux_etats_finaux = self.etats - self.etats_finaux
+        self.etats_finaux = nouveaux_etats_finaux
+
+        print("Transformation en langage complémentaire terminée.")
+
     def determiniser(self):
         if self.contient_transition_epsilon():
             self.eliminer_transitions_epsilon()
@@ -418,10 +424,14 @@ while True:  # Boucle pour relancer le programme avec un autre automate
     is_complet, message = automate.is_complet()
     print(message)
 
-    # Standardisation de l'automate (si applicable)
+    # Standardisation de l'automate
     if hasattr(automate, "is_standard"):
         print(automate.is_standard())
         automate.standardiser()
+
+    # Complementaire
+    automate.complémentaire()
+
 
     #  Déterminisation si nécessaire
     if not is_deterministe:
@@ -434,6 +444,10 @@ while True:  # Boucle pour relancer le programme avec un autre automate
         print("\nTests d'acceptation après déterminisation ")
         print(f"Chaîne 'a' : {afd.acceptedet('a')}")
         print(f"Chaîne 'bbaaa' : {afd.acceptedet('bbaaa')}")
+
+        afd.complémentaire()
+
+
 
     # Demander si l'utilisateur veut relancer avec un autre automate
     relancer = input("\nVoulez-vous analyser un autre automate ? (O/N) : ").strip().lower()
