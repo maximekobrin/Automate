@@ -486,7 +486,7 @@ while True:  # Boucle pour relancer le programme avec un autre automate
     chemin_selectionne = choisir_fichier()
     if not chemin_selectionne:
         print("Aucun fichier sélectionné. Arrêt du programme.")
-        break  # Sortir de la boucle si aucun fichier n'est sélectionné
+        break
 
     # Charger et afficher l'automate
     automate = AutomateFini(chemin_selectionne)
