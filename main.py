@@ -4,7 +4,7 @@ from collections import defaultdict
 
 
 def choisir_fichier():
-    dossier = "/Users/maximekobrin/Documents/Python PS/GitHub/Untitled/txt"  # Dossier où se trouvent tes fichiers
+    dossier = "C:/Users/anthi/Automate/txt"  # Dossier où se trouvent tes fichiers
     fichiers = [f for f in os.listdir(dossier) if f.endswith('.txt')]  # Liste des fichiers .txt
 
     if not fichiers:
@@ -200,6 +200,18 @@ class AutomateFini:
             if len(nouvelles_partitions) == len(partitions):
                 break
             partitions = nouvelles_partitions
+        def refine_partitions(partitions):
+            nouvelle_partition = []
+            for partition in partitions:
+                # Dictionnaire pour regrouper les états par leurs transitions
+                transition_dict = defaultdict(set)
+                for etat in partition:
+                    # Obtenir les transitions pour chaque symbole
+                    for symbole in {s for (e, s) in self.transitions.keys() if e == etat}:
+                        destination = self.transitions.get((etat, symbole), set())
+                        transition_dict[frozenset(destination)].add(etat)
+                nouvelle_partition.extend(transition_dict.values())
+            return nouvelle_partition
         # 4. Créer l'automate minimisé
         nouveaux_etats = {frozenset(partition) for partition in partitions}
         nouvel_etat_initial = frozenset(self.etats_initiaux)
@@ -342,7 +354,6 @@ class AutomateDeterministe(AutomateFini):
         return nom_etats
 
     def afficher(self):
-        print("\nAutomate Déterminisé :")
         print(f"Nombre d'états : {len(self.etats)}")
         print(f"État initial : {self.nom_etats[self.etat_initial]}")
         print(f"États finaux : {self.etats_acceptants}")
@@ -431,7 +442,7 @@ class AutomateDeterministe(AutomateFini):
         largeur_colonne = max(largeur_etat, largeur_symbole)
 
         # Affichage de l'en-tête du tableau
-        print("\nTable de transition (Automate Déterminisé) :")
+        print("\nTable de transition :")
         en_tete = "État".ljust(largeur_colonne) + "".join(symbole.ljust(largeur_colonne) for symbole in alphabet)
         print("-" * len(en_tete))
         print(en_tete)
