@@ -499,7 +499,10 @@ while True:  # Boucle pour relancer le programme avec un autre automate
 
     # Tester si des chaînes sont acceptées
     print("\nTests d'acceptation ")
-    print(f"Chaîne 'a' : {automate.accepte('a')}")
+
+    mot = input("Quels mots souhaitez-vous essayer : ")
+    print(f"Chaîne '{mot}' : {automate.accepte(mot)}")
+
     print(f"Chaîne 'bbaaa' : {automate.accepte('bbaaa')}")
 
     # Vérifier si l'automate est déterministe et complet
@@ -528,6 +531,7 @@ while True:  # Boucle pour relancer le programme avec un autre automate
 
         # Tester si des chaînes sont acceptées par l'AFD
         print("\nTests d'acceptation après déterminisation ")
+
         print(f"Chaîne 'a' : {afd.acceptedet('a')}")
         print(f"Chaîne 'bbaaa' : {afd.acceptedet('bbaaa')}")
 
