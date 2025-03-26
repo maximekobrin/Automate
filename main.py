@@ -4,7 +4,7 @@ from collections import defaultdict
 
 
 def choisir_fichier():
-    dossier = "C:/Users/anthi/Automate/txt"  # Dossier où se trouvent tes fichiers
+    dossier = "/Users/maximekobrin/Documents/Python PS/GitHub/Untitled/txt"  # Dossier où se trouvent tes fichiers
     fichiers = [f for f in os.listdir(dossier) if f.endswith('.txt')]  # Liste des fichiers .txt
 
     if not fichiers:
@@ -145,7 +145,7 @@ class AutomateFini:
         etat_initial = next(iter(self.etats_initiaux))
 
         for (etat_depart,symbole), etats_arrivee in self.transitions.items():
-            if etat_initial in etats_arrivee and etat_depart != etat_initial:
+            if etat_initial in etats_arrivee or etat_depart != etat_initial:
                 return False
 
         return True
@@ -490,6 +490,66 @@ class AutomateDeterministe(AutomateFini):
         return any(etat in self.etats_acceptants for etat in etats_actuels)
 
 
+# 🔹 Menu interactif
+print("\nBienvenue dans le menu des automates !")
+
+while True:
+    chemin_selectionne = choisir_fichier()
+    if not chemin_selectionne:
+        print("Aucun fichier sélectionné. Arrêt du programme.")
+        break
+
+    # Charger et afficher l'automate
+    automate = AutomateFini(chemin_selectionne)
+    automate.afficher()
+    automate.afficher_table_transitions()
+
+    while True:
+        print("\n🔹 Que voulez-vous faire ?")
+        print("1️⃣ Standardiser l'automate")
+        print("2️⃣ Déterminiser l'automate")
+        print("3️⃣ Complémenter l'automate")
+        print("4️⃣ Minimiser l'automate")
+        print("5️⃣ Changer d'automate")
+        print("6️⃣ Quitter")
+
+        choix = input("Entrez votre choix : ")
+
+        if choix == "1":
+            is_standard = automate.is_standard()
+            standard = automate.standardiser()
+            automate.afficher()
+            automate.afficher_table_transitions()
+
+        elif choix == "2":
+            is_deterministe, message = automate.est_deterministe()
+            print(message)
+            if not is_deterministe:
+                automate = automate.determiniser()
+                automate.afficher()
+
+
+        elif choix == "3":
+            automate.complémentaire()
+            automate.afficher()
+
+        elif choix == "4":
+            mini = automate.minimiser()
+            automate.afficher()
+            automate.afficher_table_transitions()
+
+
+        elif choix == "5":
+            break  # Permet de relancer la sélection d'un automate
+
+        elif choix == "6":
+            print("✅ Programme terminé.")
+            exit()
+
+        else:
+            print("Choix invalide. Veuillez entrer un numéro valide.")
+
+
 # Lancement du Programme avec option de relance
 automates_sauvegardes = {}
 
@@ -561,3 +621,7 @@ while True:  # Boucle pour relancer le programme avec un autre automate
     if relancer != 'o':  # Si l'utilisateur ne choisit pas 'O', on quitte la boucle
         print("Programme terminé.")
         break
+
+
+def main():
+    return None
