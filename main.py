@@ -278,6 +278,9 @@ class AutomateFini:
         print(f"Nombre de transitions : {self.nombre_transitions}")
 
     def afficher_table_transitions(self):
+        if not self.transitions:
+            print("\nAucune table de transition définie.")
+            return
 
         # Récupérer l'alphabet sans ε
         alphabet = sorted({s for _, s in self.transitions.keys() if s != "ε"})
@@ -511,7 +514,8 @@ while True:
         print("3️⃣ Complémenter l'automate")
         print("4️⃣ Minimiser l'automate")
         print("5️⃣ Changer d'automate")
-        print("6️⃣ Quitter")
+        print("6 Tester un mot")
+        print("7 Quitter")
 
         choix = input("Entrez votre choix : ")
 
@@ -527,6 +531,7 @@ while True:
             if not is_deterministe:
                 automate = automate.determiniser()
                 automate.afficher()
+                automate.afficher_table_transitions()
 
 
         elif choix == "3":
@@ -543,6 +548,12 @@ while True:
             break  # Permet de relancer la sélection d'un automate
 
         elif choix == "6":
+            print("Test de mot")
+            mot = input("Quels mots souhaitez-vous essayer : ")
+            print(f"Chaîne '{mot}' : {automate.accepte(mot)}")
+
+
+        elif choix == "7":
             print("✅ Programme terminé.")
             exit()
 
