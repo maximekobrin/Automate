@@ -54,12 +54,14 @@ class AutomateFini:
             symboles = elements[1].split(',')  # Symboles séparés par des virgules
             etat_arrivee = elements[2]
 
+
             for symbole in symboles:
                 self.transitions.setdefault((etat_depart, symbole), set()).add(etat_arrivee)
 
         #Liste de etats
         self.etats = {etat for (etat, _) in self.transitions.keys()}  # Récupère tous les états
         self.etats.update({e for dest in self.transitions.values() for e in dest})  # Ajoute les états d'arrivée
+
 
 
     #création d'un état qui regroupe l'ensemble des etat accessible uniquement en ε
@@ -234,30 +236,45 @@ class AutomateFini:
         print("Transformation en langage complémentaire terminée.")
 
     def determiniser(self):
+        def format_etat(etat):
+            return "{" + ", ".join(sorted(etat)) + "}" if etat else "∅"
+
         if self.contient_transition_epsilon():
             self.eliminer_transitions_epsilon()
         else:
-            print("pas de relation ε donc direct determinisation")
+            print("Pas de relation ε, donc déterminisation directe.")
 
         nouvel_etat_initial = frozenset(self.etats_initiaux)
+        print(f"Nouvel état initial : {format_etat(nouvel_etat_initial)}")
+
         nouveaux_etats = {nouvel_etat_initial}
         nouveaux_etats_a_traiter = [nouvel_etat_initial]
         nouvelles_transitions = {}
         nouveaux_etats_acceptants = set()
 
+        alphabet = {s for _, s in self.transitions.keys() if s != "ε"}
+        print(f"Alphabet : {alphabet}")
+        print("Transition :  \n")
+
         while nouveaux_etats_a_traiter:
             etat_courant = nouveaux_etats_a_traiter.pop()
+
             nouvelles_transitions[etat_courant] = {}
 
-            for symbole in {s for _, s in self.transitions.keys() if s != "ε"}:
+
+            # Parcours de l'alphabet
+            for symbole in alphabet:
                 nouvel_etat = set()
+                # Recherche des états de transition pour chaque état dans etat_courant
                 for etat in etat_courant:
                     if (etat, symbole) in self.transitions:
                         nouvel_etat.update(self.transitions[(etat, symbole)])
 
+                # Convertir nouvel_etat en frozenset (ensemble immuable)
                 nouvel_etat = frozenset(nouvel_etat)
                 if nouvel_etat:
                     nouvelles_transitions[etat_courant][symbole] = nouvel_etat
+
                     if nouvel_etat not in nouveaux_etats:
                         nouveaux_etats.add(nouvel_etat)
                         nouveaux_etats_a_traiter.append(nouvel_etat)
@@ -267,7 +284,22 @@ class AutomateFini:
             if any(s in self.etats_finaux for s in etat):
                 nouveaux_etats_acceptants.add(etat)
 
-        return AutomateDeterministe(nouveaux_etats, nouvelles_transitions, nouvel_etat_initial, nouveaux_etats_acceptants)
+
+
+        for etat, transitions in nouvelles_transitions.items():
+            etat_formatte = format_etat(etat)
+            for symbole, destination in transitions.items():
+                print(f"{etat_formatte} -- {symbole} --> {format_etat(destination)}")
+
+        print(" ")
+        # Retourner un nouvel automate déterministe
+        return AutomateDeterministe(
+            {format_etat(etat) for etat in nouveaux_etats},
+            {format_etat(e): {symb: format_etat(dest) for symb, dest in trans.items()} for e, trans in
+             nouvelles_transitions.items()},
+            format_etat(nouvel_etat_initial),
+            {format_etat(e) for e in nouveaux_etats_acceptants}
+        )
 
     def afficher(self):
         """ Affiche les détails de l'automate """
@@ -275,7 +307,7 @@ class AutomateFini:
         print(f"Nombre d'états : {self.nombre_etats}")
         print(f"États initiaux : {self.etats_initiaux}")
         print(f"États finaux : {self.etats_finaux}")
-        print(f"Nombre de transitions : {self.nombre_transitions}")
+        print(f"Nombre de transitions : {self.nombre_transitions}\n")
 
     def afficher_table_transitions(self):
         if not self.transitions:
@@ -283,11 +315,12 @@ class AutomateFini:
             return
 
         # Récupérer l'alphabet sans ε
-        alphabet = sorted({s for _, s in self.transitions.keys() if s != "ε"})
-
+        alphabet = sorted(
+            {s for key in self.transitions.keys() if isinstance(key, tuple) and len(key) == 2 for _, s in [key] if
+             s != "ε"})
 
         largeur_etat = max(len(str(etat)) for etat in self.etats) + 6  # Espacement pour (I) ou (F)
-        largeur_symbole = max(len(symbole) for symbole in alphabet) + 7
+        largeur_symbole = (max((len(symbole) for symbole in alphabet), default=1)) + 7
         largeur_colonne = max(largeur_etat, largeur_symbole)
 
         # Affichage de l'en-tête
@@ -357,8 +390,9 @@ class AutomateDeterministe(AutomateFini):
         return nom_etats
 
     def afficher(self):
+
         print(f"Nombre d'états : {len(self.etats)}")
-        print(f"État initial : {self.nom_etats[self.etat_initial]}")
+        print(f"État initial : {self.etat_initial}")
         print(f"États finaux : {self.etats_acceptants}")
 
 
@@ -404,76 +438,6 @@ class AutomateDeterministe(AutomateFini):
                                     {frozenset(part) for part in partitions if part & etats_acceptants})
 
 
-
-    def afficher_table_transitions(self):
-
-        # Vérifier si l'automate a des transitions
-        if not self.transitions:
-            print("\nAucune transition détectée dans l'automate.")
-            print("\nTable de transition :")
-            print("-" * 20)
-            print("État".ljust(15) + "∅")
-            for etat in sorted(self.etats, key=str):
-                type_etat = ""
-                if etat == self.etat_initial and etat in self.etats_acceptants:
-                    type_etat = "(I,F) "
-                elif etat == self.etat_initial:
-                    type_etat = "(I)   "
-                elif etat in self.etats_acceptants:
-                    type_etat = "(F)   "
-
-                print(f"{type_etat}{etat}".ljust(15) + "∅")
-            print("-" * 20)
-            return
-
-        # Renommer les états pour un affichage plus lisible (Q0, Q1, ...)
-        nom_etats = {etat: f"Q{i}" for i, etat in enumerate(sorted(self.etats, key=str))}
-
-        # Récupérer l'alphabet sans ε, avec sécurité
-        alphabet = sorted(
-            {s for key in self.transitions.keys() if isinstance(key, tuple) and len(key) == 2 for _, s in [key] if
-             s != "ε"}
-        )
-
-        if not alphabet:  # Sécurité : Si l'alphabet est vide
-            print("\nAvertissement : L'alphabet est vide, aucune transition détectée.")
-            alphabet = ["∅"]  # Ajoute un symbole fictif pour éviter l'erreur
-
-        # Largeur des colonnes pour aligner l'affichage
-        largeur_etat = max(len(nom) for nom in nom_etats.values()) + 6  # Espace pour (I), (F), etc.
-        largeur_symbole = max((len(symbole) for symbole in alphabet), default=2) + 2
-        largeur_colonne = max(largeur_etat, largeur_symbole)
-
-        # Affichage de l'en-tête du tableau
-        print("\nTable de transition :")
-        en_tete = "État".ljust(largeur_colonne) + "".join(symbole.ljust(largeur_colonne) for symbole in alphabet)
-        print("-" * len(en_tete))
-        print(en_tete)
-        print("-" * len(en_tete))
-
-        # Affichage des transitions
-        for etat, nom_etat in nom_etats.items():
-            # Type d'état (I = Initial, F = Final, I,F = Initial et Final)
-            type_etat = ""
-            if etat == self.etat_initial and etat in self.etats_acceptants:
-                type_etat = "(I,F) "
-            elif etat == self.etat_initial:
-                type_etat = "(I)   "
-            elif etat in self.etats_acceptants:
-                type_etat = "(F)   "
-
-            ligne = f"{type_etat}{nom_etat}".ljust(largeur_colonne)  # Affichage du type avant l'état
-
-            for symbole in alphabet:
-                destination = self.transitions.get((etat, symbole), "∅")  # "∅" si aucune transition
-                destination_str = ", ".join(nom_etats.get(d, str(d)) for d in destination) if isinstance(destination,
-                                                                                                         set) else nom_etats.get(
-                    destination, str(destination))
-                ligne += destination_str.ljust(largeur_colonne)  # Aligner les colonnes
-
-            print(ligne)
-
-        print("-" * len(en_tete))  # Ligne de fin du tableau
 
     def acceptedet(self, chaine):
 
@@ -531,7 +495,6 @@ while True:
             if not is_deterministe:
                 automate = automate.determiniser()
                 automate.afficher()
-                automate.afficher_table_transitions()
 
 
         elif choix == "3":
@@ -541,7 +504,6 @@ while True:
         elif choix == "4":
             mini = automate.minimiser()
             automate.afficher()
-            automate.afficher_table_transitions()
 
 
         elif choix == "5":
@@ -559,80 +521,3 @@ while True:
 
         else:
             print("Choix invalide. Veuillez entrer un numéro valide.")
-
-
-# Lancement du Programme avec option de relance
-automates_sauvegardes = {}
-
-while True:  # Boucle pour relancer le programme avec un autre automate
-    chemin_selectionne = choisir_fichier()
-    if not chemin_selectionne:
-        print("Aucun fichier sélectionné. Arrêt du programme.")
-        break
-
-    # Charger et afficher l'automate
-    automate = AutomateFini(chemin_selectionne)
-    nom_automate = chemin_selectionne.split('/')[-1]
-    automates_sauvegardes[nom_automate] = automate  # Sauvegarde en mémoire
-    print(f"\nAutomate '{nom_automate}' enregistré en mémoire.")
-
-    automate.afficher()
-    automate.afficher_table_transitions()
-
-    # Tester si des chaînes sont acceptées
-    print("\nTests d'acceptation ")
-
-    mot = input("Quels mots souhaitez-vous essayer : ")
-    print(f"Chaîne '{mot}' : {automate.accepte(mot)}")
-
-    print(f"Chaîne 'bbaaa' : {automate.accepte('bbaaa')}")
-
-    # Vérifier si l'automate est déterministe et complet
-    is_deterministe, message = automate.est_deterministe()
-    print(message)
-    is_complet, message = automate.is_complet()
-    print(message)
-
-
-    # Standardisation de l'automate
-    if hasattr(automate, "is_standard"):
-        print(automate.is_standard())
-        automate.standardiser()
-    # Complementaire
-    automate.complémentaire()
-
-
-
-
-    #  Déterminisation si nécessaire
-    if not is_deterministe:
-        print("\n**Suppression des transitions ε et déterminisation**")
-        afd = automate.determiniser()
-        afd.afficher()
-        afd.afficher_table_transitions()
-
-        # Tester si des chaînes sont acceptées par l'AFD
-        print("\nTests d'acceptation après déterminisation ")
-
-        print(f"Chaîne 'a' : {afd.acceptedet('a')}")
-        print(f"Chaîne 'bbaaa' : {afd.acceptedet('bbaaa')}")
-
-        afd.complémentaire()
-
-    # Minimisation de l'automate
-    automate_minimise = automate.minimiser()
-    print("\nAutomate minimisé :")
-    automate_minimise.afficher()
-    automate_minimise.afficher_table_transitions()
-
-
-
-    # Demander si l'utilisateur veut relancer avec un autre automate
-    relancer = input("\nVoulez-vous analyser un autre automate ? (O/N) : ").strip().lower()
-    if relancer != 'o':  # Si l'utilisateur ne choisit pas 'O', on quitte la boucle
-        print("Programme terminé.")
-        break
-
-
-def main():
-    return None
